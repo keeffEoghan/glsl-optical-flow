@@ -1,0 +1,29 @@
+{
+  "name": "glsl-optical-flow",
+  "version": "1.0.0",
+  "description": "Optical flow for WebGL - BYORenderer.",
+  "main": "index.frag.glsl",
+  "repository": "https://github.com/keeffEoghan/glsl-optical-flow",
+  "author": "Eoghan O'Keeffe <epok.tech@gmail.com> (https://epok.tech/)",
+  "license": "MIT",
+  "engines": {
+    "node": "10.16.3",
+    "yarn": "1.19.0"
+  },
+  "scripts": {
+    "start": "yarn run docs",
+    "docs": "rm -rf docs/ && parcel build ./example/index.html -d ./docs/ --public-url ./"
+  },
+  "dependencies": {
+    "glsl-luma": "^1.0.1",
+    "glsl-map": "^1.0.1"
+  },
+  "devDependencies": {
+    "@epok.tech/gl-screen-triangle": "https://github.com/keeffEoghan/gl-screen-triangle",
+    "array-utils": "https://github.com/keeffEoghan/array-utils",
+    "cssnano": "^4.1.10",
+    "getusermedia": "^2.0.1",
+    "glslify": "^7.0.0",
+    "regl": "^1.3.13"
+  }
+}

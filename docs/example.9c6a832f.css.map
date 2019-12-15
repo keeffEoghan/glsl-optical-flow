@@ -1,0 +1,1 @@
+{"version":3,"sources":["index.css"],"names":[],"mappings":"AAAA,KACI,QAAS,CACT,YAAa,CACb,kBAAmB,CACnB,sBAAuB,CACvB,kBACJ","file":"example.9c6a832f.css","sourceRoot":"../example","sourcesContent":["body {\n    margin: 0;\n    display: flex;\n    flex-flow: row wrap;\n    justify-content: center;\n    align-items: center;\n}\n"]}
