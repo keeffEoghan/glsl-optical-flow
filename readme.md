@@ -19,7 +19,7 @@ yarn add @epok.tech/glsl-optical-flow
 
 ## Usage
 
-[Check out the demo](http://epok.tech/glsl-optical-flow/), and its [source code](./example/):
+[Check out the demo](http://epok.tech/glsl-optical-flow/), and its [source code](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/example/):
 
 You may use this in your own shader...
 ```glsl
@@ -39,7 +39,7 @@ void main() {
 }
 ```
 
-... or [the provided fragment shader](./index.frag.glsl); for direct usage (requiring `glslify`), or an instructive example.
+... or [the provided fragment shader](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/index.frag.glsl); for direct usage (requiring `glslify`), or an instructive example.
 
 ## See Also
 
