@@ -2,7 +2,7 @@
 import getRegl from 'regl';
 import getUserMedia from 'getusermedia';
 import { positions, count } from '@epok.tech/gl-screen-triangle';
-import { range, map, each, wrapGet } from 'array-utils';
+import { range, map, each, wrapGet } from '@epok.tech/array-utils';
 
 import vert from '@epok.tech/gl-screen-triangle/uv-texture.vert.glsl';
 import frag from '../index.frag.glsl';
