@@ -19,7 +19,7 @@ yarn add @epok.tech/glsl-optical-flow
 
 ## Usage
 
-[Check out the demo](http://epok.tech/glsl-optical-flow/), and its [source code](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/example/):
+[Check out the demo](http://epok.tech/glsl-optical-flow/), and its [source code](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/demo/), which shows how to use multi-frame blending to get smooth optical-flow tracking across time:
 
 You may use this in your own shader...
 ```glsl
@@ -43,7 +43,6 @@ void main() {
 
 ## To-Do
 
-- Cater for multi-frame blending, for consistency across time.
 - Blur.
 
 ## See Also
