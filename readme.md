@@ -41,6 +41,11 @@ void main() {
 
 ... or [the provided fragment shader](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/index.frag.glsl); for direct usage (requiring `glslify`), or an instructive example.
 
+## To-Do
+
+- Cater for multi-frame blending, for consistency across time.
+- Blur.
+
 ## See Also
 
 Based on:
