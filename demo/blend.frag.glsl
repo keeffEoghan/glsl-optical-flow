@@ -7,5 +7,7 @@ uniform float fade;
 varying vec2 uv;
 
 void main() {
-    gl_FragColor = max(texture2D(next, uv), texture2D(past, uv)*fade);
+    vec4 to = texture2D(next, uv);
+
+    gl_FragColor = mix(texture2D(past, uv)*fade, to, to.a);
 }

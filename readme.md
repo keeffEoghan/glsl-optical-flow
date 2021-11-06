@@ -19,7 +19,7 @@ yarn add @epok.tech/glsl-optical-flow
 
 ## Usage
 
-[Check out the demo](http://epok.tech/glsl-optical-flow/), and its [source code](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/demo/), which shows how to use multi-frame blending to get smooth optical-flow tracking across time:
+[Check out the demo](http://epok.tech/glsl-optical-flow/), and its [source code](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/demo/), which shows how to blur input and blend across frames to get smooth optical-flow tracking over time:
 
 You may use this in your own shader...
 ```glsl
@@ -32,18 +32,14 @@ uniform float lambda;
 
 varying vec2 uv;
 
-#pragma glslify: opticalFlow = require('@epok.tech/glsl-optical-flow/index');
+#pragma glslify: opticalFlow = require(@epok.tech/glsl-optical-flow)
 
 void main() {
     gl_FragColor = vec4(opticalFlow(uv, view, past, offset, lambda), 0.0, 1.0);
 }
 ```
 
-... or [the provided fragment shader](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/index.frag.glsl); for direct usage (requiring `glslify`), or an instructive example.
-
-## To-Do
-
-- Blur.
+... or [the provided fragment shader](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/index.frag.glsl), for example, or for direct usage (with `glslify`).
 
 ## See Also
 

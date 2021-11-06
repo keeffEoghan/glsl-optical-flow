@@ -18,7 +18,7 @@
 #endif
 
 #if opticalFlowPixel == opticalFlowPixel_luma
-    #pragma glslify: luma = require('glsl-luma');
+    #pragma glslify: luma = require(glsl-luma)
 
     vec4 pixel(sampler2D texture, vec2 uv) {
         vec4 color = texture2D(texture, uv);

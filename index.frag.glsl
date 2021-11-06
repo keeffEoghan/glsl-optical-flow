@@ -18,11 +18,12 @@ uniform float offset;
 uniform float lambda;
 uniform float alpha;
 
+// Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 255]).
 #if opticalFlowMap == opticalFlowMap_range
-    #pragma glslify: map = require('glsl-map');
-
     uniform vec4 inRange;
     uniform vec4 outRange;
+
+    #pragma glslify: map = require(glsl-map)
 #endif
 
 varying vec2 uv;
@@ -33,6 +34,7 @@ void main() {
     vec2 flow = opticalFlow(uv, view, past, offset, lambda);
     float strength = 1.0;
 
+    // Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 255]).
     #if opticalFlowMap == opticalFlowMap_range
         strength = dot(flow, flow);
         flow = map(flow, inRange.xy, inRange.zw, outRange.xy, outRange.zw);
