@@ -34,19 +34,20 @@
     vec4 pixel(sampler2D texture, vec2 uv);
 #endif
 
-vec2 opticalFlow(in vec2 uv, in sampler2D view, in sampler2D past, in float offset,
+// @todo Sample mimaps at different LODs/scales to capture wider features.
+vec2 opticalFlow(in vec2 uv, in sampler2D next, in sampler2D past, in float offset,
         in float lambda) {
     vec2 off = vec2(offset, 0.0);
 
-    vec4 gradX = (pixel(view, uv+off.xy)-pixel(view, uv-off.xy))+
+    vec4 gradX = (pixel(next, uv+off.xy)-pixel(next, uv-off.xy))+
         (pixel(past, uv+off.xy)-pixel(past, uv-off.xy));
 
-    vec4 gradY = (pixel(view, uv+off.yx)-pixel(view, uv-off.yx))+
+    vec4 gradY = (pixel(next, uv+off.yx)-pixel(next, uv-off.yx))+
         (pixel(past, uv+off.yx)-pixel(past, uv-off.yx));
 
     vec4 gradMag = sqrt((gradX*gradX)+(gradY*gradY)+vec4(lambda));
 
-    vec4 diff = pixel(view, uv)-pixel(past, uv);
+    vec4 diff = pixel(next, uv)-pixel(past, uv);
 
     return vec2((diff*(gradX/gradMag)).x, (diff*(gradY/gradMag)).x);
 }

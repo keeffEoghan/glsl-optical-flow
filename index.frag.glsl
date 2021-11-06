@@ -12,7 +12,7 @@
 
 precision highp float;
 
-uniform sampler2D view;
+uniform sampler2D next;
 uniform sampler2D past;
 uniform float offset;
 uniform float lambda;
@@ -31,7 +31,7 @@ varying vec2 uv;
 #pragma glslify: opticalFlow = require('./index');
 
 void main() {
-    vec2 flow = opticalFlow(uv, view, past, offset, lambda);
+    vec2 flow = opticalFlow(uv, next, past, offset, lambda);
     float strength = 1.0;
 
     // Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 255]).

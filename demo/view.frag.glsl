@@ -15,6 +15,7 @@ varying vec2 uv;
 
 void main() {
     vec4 data = texture2D(frame, uv);
+    // Reverse any mapping performed in the flow shader.
     vec2 flow = map(data.xy, outRange.xy, outRange.zw, inRange.xy, inRange.zw);
     float a = data.a;
     // Angle to hue - red right, green up, cyan left, magenta down.

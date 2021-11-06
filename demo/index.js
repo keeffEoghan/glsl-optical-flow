@@ -18,97 +18,145 @@ const video = document.querySelector('video');
 
 const regl = getRegl(canvas);
 
-const blurMaps = map(() => regl.texture({ flipY: true }), range(2), 0);
-const blurFrames = map((color) => regl.framebuffer({ color }), blurMaps);
+// Each axis of blur.
+const blurMaps = map(() => regl.texture(), range(2), 0);
+const blurFrames = map((c) => regl.framebuffer({ color: c }), blurMaps);
 
+// Past and present frames for optical flow.
 const flowMaps = map(() => regl.texture(), range(2), 0);
-const flowFrame = regl.framebuffer();
+const flowFrames = map((c) => regl.framebuffer({ color: c }), flowMaps);
+const flowTo = regl.framebuffer();
 
+// Past and present frames to blend.
 const blendFrames = map(() => regl.framebuffer(), range(2), 0);
 
-const resizers = [...blurFrames, ...flowMaps, flowFrame, ...blendFrames];
+const resizers = [...blurFrames, ...flowFrames, flowTo, ...blendFrames];
 
 video.autoplay = false;
 
+const inRange = [-1, -1, 1, 1];
+const outRange = [0, 0, 1, 1];
+
 const props = self.opticalFlow = {
-    // The `blur` props array will blur in both axes one after the other.
-    blur: {
-        radius: 3,
-        passes: map((v, i) => ({ axis: i }), blurFrames)
+    videoSample: { data: video, flipY: true },
+    blurVideo: {
+        axes: [[1, 0], [0, 1]],
+        /**
+         * The `passes` props array will blur in both axes one after the other.
+         * Blurs the first axis of the first blur frame into the next frame,
+         * then the last axis of that frame into the flow input.
+         *
+         * @see drawBlurVideo
+         */
+        passes: map((v, a) => ({ axis: a }), blurFrames)
     },
     flow: {
         // Pixels units; will divide `offset` by the video resolution later.
-        offset: 2,
-        lambda: 0.1,
-        alpha: 50,
-        inRange: [-1, -1, 1, 1],
-        outRange: [0, 0, 1, 1]
+        offset: 3,
+        lambda: 1e-2, alpha: 50, inRange, outRange
     },
-    blend: { fade: 0.9 },
-    view: {}
+    blurPast: {
+        axes: [[1, 0], [0, 1]],
+        /**
+         * The `passes` props array will blur in both axes one after the other.
+         * Blurs the first axis of the first blur frame into the next frame,
+         * then the last axis of that frame into the past blend frame.
+         *
+         * @see drawBlurPast
+         */
+        passes: map((v, a) => ({ axis: a }), blurFrames)
+    },
+    blend: { fade: 0.99 },
+    view: { inRange, outRange }
 };
 
-props.view.inRange = props.flow.inRange;
-props.view.outRange = props.flow.outRange;
+const clearView = { color: [0, 0, 0, 0], depth: 1, stencil: 0 };
+const clearBlurs = map((f) => ({ ...clearView, framebuffer: f }), blurFrames);
+const clearFlows = map((f) => ({ ...clearView, framebuffer: f }), flowFrames);
+const clearFlow = { ...clearView, framebuffer: flowTo };
+const clearBlends = map((f) => ({ ...clearView, framebuffer: f }), blendFrames);
+
+function clear(tick){
+    regl.clear(clearView);
+    regl.clear(wrapGet(tick, clearFlows));
+    regl.clear(clearFlow);
+    regl.clear(wrapGet(tick, clearBlends));
+}
 
 const drawScreen = regl({ vert, attributes: { position: positions }, count });
 
-// Draw the current video frame and blur it in both axes.
+// Draw the current video frame and blur it across both axes.
 const drawBlur = regl({
     frag: blurFrag,
     uniforms: {
-        frame: (c, { axis, radius }) => {
-            // 2-axis blur; only get `video` on the first `axis` of this `tick`.
-            (axis || blurMaps[0].subimage(video));
-
-            return blurFrames[axis];
-        },
-        axis: regl.prop('axis'),
+        // Swap by `axis`; allow `frame` to override if given.
+        frame: (c, { frame: f, axis: a }) => (f || wrapGet(a+1, blurFrames)),
+        // Pass `axis` of declared `axes`; easier blur direction/scale control.
+        axis: (c, { axes, axis: a }) => axes[a],
         radius: regl.prop('radius'),
         width: regl.context('drawingBufferWidth'),
         height: regl.context('drawingBufferHeight')
     },
-    framebuffer: (c, { axis }) => wrapGet(axis+1, blurFrames)
+    // Swap by `axis`; allow `to` to  override `framebuffer` if given.
+    framebuffer: (c, { to, axis: a }) => (to || wrapGet(a, blurFrames))
 });
 
 // Draws the 2 `passes` of `blur` across both axes one after the other.
-function drawBlurProps() {
-    const { blur } = props;
-
+function drawBlurProps(blur) {
     // Pass any common `props` from `blur` to each of `passes`.
     return drawBlur(map((a) => Object.assign(a, blur, a), blur.passes, 0));
 }
 
-// Copy the contents of the last `blur` frame.
-const copyBlurToFlow = (tick) =>
-    blurFrames[0].use(() => wrapGet(tick, flowMaps)({ copy: true }));
+// Blur the input video's current frame, into the next flow frame.
+function drawBlurVideo(tick) {
+    const { videoSample: s, blurVideo: b } = props;
+
+    each(regl.clear, clearBlurs);
+    blurMaps[1](s);
+    b.passes[1].to = wrapGet(tick, flowFrames);
+
+    return drawBlurProps(b);
+}
 
 // The main function of concern - get the optical flow from the last 2 frames.
+
 const drawFlow = regl({
     frag: '#define opticalFlowMap opticalFlowMap_range\n'+flowFrag,
     uniforms: {
-        view: ({ tick }) => wrapGet(tick, flowMaps),
-        past: ({ tick }) => wrapGet(tick+1, flowMaps),
+        next: ({ tick: t }) => wrapGet(t, flowMaps),
+        past: ({ tick: t }) => wrapGet(t+1, flowMaps),
         offset: regl.prop('offset'),
         lambda: regl.prop('lambda'),
         alpha: regl.prop('alpha'),
         inRange: regl.prop('inRange'),
         outRange: regl.prop('outRange')
     },
-    framebuffer: flowFrame
+    framebuffer: flowTo
 });
 
 const drawFlowProps = () => drawFlow(props.flow);
+
+// Blur the past blend frame.
+function drawBlurPast(tick) {
+    const b = props.blurPast;
+    const ps = b.passes;
+
+    each(regl.clear, clearBlurs);
+    ps[0].frame = wrapGet(tick+1, blendFrames);
+
+    return drawBlurProps(b);
+}
 
 // Blend the `past` and `next` optical-flow frames.
 const drawBlend = regl({
     frag: blendFrag,
     uniforms: {
-        next: flowFrame,
-        past: ({ tick }) => wrapGet(tick, blendFrames),
+        next: flowTo,
+        // This will have the blurred result of the past frame.
+        past: wrapGet(-1, blurFrames),
         fade: regl.prop('fade')
     },
-    framebuffer: ({ tick }) => wrapGet(tick+1, blendFrames)
+    framebuffer: ({ tick: t }) => wrapGet(t, blendFrames)
 });
 
 const drawBlendProps = () => drawBlend(props.blend);
@@ -116,7 +164,7 @@ const drawBlendProps = () => drawBlend(props.blend);
 const drawView = regl({
     frag: viewFrag,
     uniforms: {
-        frame: ({ tick }) => wrapGet(tick+1, blendFrames),
+        frame: ({ tick: t }) => wrapGet(t, blendFrames),
         inRange: regl.prop('inRange'),
         outRange: regl.prop('outRange')
     }
@@ -124,22 +172,22 @@ const drawView = regl({
 
 const drawViewProps = () => drawView(props.view);
 
-const clear = { color: [0, 0, 0, 0], depth: 1, stencil: 0 };
-const clearBlurs = map((f) => ({ ...clear, framebuffer: f }), blurFrames);
-const clearFlow = { ...clear, framebuffer: flowFrame };
-const clearBlends = map((f) => ({ ...clear, framebuffer: f }), blendFrames);
-
-function drawScene({ tick }) {
-    regl.clear(clear);
-    regl.clear(wrapGet(tick+1, clearBlurs));
-    regl.clear(clearFlow);
-    regl.clear(wrapGet(tick+1, clearBlends));
-
-    drawBlurProps();
-    copyBlurToFlow(tick);
+function drawScene(tick){
+    // Blur the input video's current frame.
+    drawBlurVideo(tick);
+    // Get the optical flow from the last 2 frames.
     drawFlowProps();
+    // Blur the past frame.
+    drawBlurPast(tick);
+    // Blend the last 2 frames with some amount of `fade`.
     drawBlendProps();
+    // Draw to the screen.
     drawViewProps();
+}
+
+function draw({ tick: t }) {
+    clear(t);
+    drawScene(t);
 }
 
 video.addEventListener('canplay', () => {
@@ -148,10 +196,11 @@ video.addEventListener('canplay', () => {
     canvas.width = w;
     canvas.height = h;
     each((v) => v.resize(w, video.videoHeight), resizers);
-    props.offset /= Math.max(w, h, 1e3);
+    // Pixels units; divide `offset` by the video resolution.
+    props.flow.offset /= Math.max(w, h, 1e3);
     video.play();
 
-    regl.frame(() => drawScreen(drawScene));
+    regl.frame(() => drawScreen(draw));
 });
 
 getUserMedia({ video: true }, (e, stream) => {
