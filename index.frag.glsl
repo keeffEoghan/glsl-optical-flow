@@ -4,11 +4,7 @@
  * @see ./index.frag
  */
 
-#define opticalFlowMap_none 0
-#define opticalFlowMap_range 1
-#ifndef opticalFlowMap
-    #define opticalFlowMap opticalFlowMap_none
-#endif
+// #define opticalFlowMap
 
 precision highp float;
 
@@ -16,10 +12,11 @@ uniform sampler2D next;
 uniform sampler2D past;
 uniform float offset;
 uniform float lambda;
+uniform float speed;
 uniform float alpha;
 
-// Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 255]).
-#if opticalFlowMap == opticalFlowMap_range
+// Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 1]).
+#ifdef opticalFlowMap
     uniform vec4 inRange;
     uniform vec4 outRange;
 
@@ -28,17 +25,16 @@ uniform float alpha;
 
 varying vec2 uv;
 
-#pragma glslify: opticalFlow = require('./index');
+#pragma glslify: opticalFlow = require(./index)
 
 void main() {
     vec2 flow = opticalFlow(uv, next, past, offset, lambda);
-    float strength = 1.0;
+    float power = dot(flow, flow);
 
-    // Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 255]).
-    #if opticalFlowMap == opticalFlowMap_range
-        strength = dot(flow, flow);
+    // Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 1]).
+    #ifdef opticalFlowMap
         flow = map(flow, inRange.xy, inRange.zw, outRange.xy, outRange.zw);
     #endif
 
-    gl_FragColor = vec4(flow, 0.0, clamp(strength*alpha, 0.0, 1.0));
+    gl_FragColor = vec4(flow*speed, power, clamp(power*alpha, 0.0, 1.0));
 }
