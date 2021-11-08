@@ -9,3 +9,8 @@ body {
     justify-content: center;
     align-items: center;
 }
+
+video,
+canvas {
+    transform: scaleX(-1);
+}
