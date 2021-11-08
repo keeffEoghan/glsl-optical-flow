@@ -10,40 +10,34 @@ import { wrapIndex, wrapGet } from '@epok.tech/fn-lists/wrap-index';
 import vert from '@epok.tech/gl-screen-triangle/uv-texture.vert.glsl';
 import flowFrag from '../index.frag.glsl';
 import spreadFrag from './spread.frag.glsl';
-import blendFrag from './blend.frag.glsl';
 import viewFrag from './view.frag.glsl';
 
 const canvas = document.querySelector('canvas');
 const video = document.querySelector('video');
 
 function go(regl) {
-    // Whether to remap values between `float`/`int`.
-    // const float = false;
     const float = (regl.hasExtension('oes_texture_float_linear') &&
         ((regl.hasExtension('oes_texture_float'))? 'float'
         :   (regl.hasExtension('oes_texture_half_float') && 'half float')));
 
-    // @todo Fix for mapped values ([-1, 1] <=> [0, 1]); mapping seems broken?
-    // const remap = !float;
-    const remap = false;
+    // Whether to remap values between `float`/`int` in textures.
+    const remap = !float;
     const mapProps = { type: (float || 'uint8'), min: 'linear', mag: 'linear' };
     const getMap = () => regl.texture(mapProps);
     const getFrame = () => regl.framebuffer({ color: getMap() });
 
-    // Each axis of spread's blur.
+    // Each blur axis of spread.
     const spreadMaps = map(getMap, range(2), 0);
     const spreadFrames = map((c) => regl.framebuffer({ color: c }), spreadMaps);
 
-    // Past and present frames for optical flow.
+    // Past and next `video` frames for optical-flow.
     const flowFrames = map(getFrame, range(2), 0);
     const flowTo = getFrame();
 
-    // Past and present frames to blend.
+    // Past and next optical-flow frames to blend.
     const blendFrames = map(getFrame, range(2), 0);
 
     const resizers = [...spreadFrames, ...flowFrames, flowTo, ...blendFrames];
-
-    video.autoplay = false;
 
     const inRange = [-1, -1, 1, 1];
     const outRange = [0, 0, 1, 1];
@@ -65,22 +59,22 @@ function go(regl) {
              *
              * @see drawSpreadProps
              */
-            passes: map((a, p) => ({ axis: a, pass: p }), [[2, 0], [0, 2]], 0)
+            passes: map((a, p) => ({ axis: a, pass: p }), [[1.4, 0], [0, 1.4]],
+                0)
         },
         flow: {
             // Pixels units; will divide `offset` by the video resolution later.
             offset: 3,
             lambda: 1e-3,
-            speed: 1,
-            // speed: 2**-8,
-            // speed: 2**-5,
-            // speed: 2**8,
+            speed: Array(2).fill(1),
             alpha: 100,
             inRange, outRange
         },
         spreadFlow: {
             /**
-             * Blur, `tint` the flow to weaken, shift/advect by the `flow`.
+             * Blur the past flow frames along each `axis`, shift/advect along
+             * the `flow` by `speed`, `tint` to weaken the past flow, `blend` in
+             * the next optical-flow frame.
              *
              * @see drawSpreadFlowProps
              */
@@ -88,19 +82,16 @@ function go(regl) {
                 '#define opticalFlowSpreadTint\n'+
                 '#define opticalFlowSpreadShift opticalFlowSpreadShift_flow\n'+
                 ((remap)? '#define opticalFlowSpreadMap\n' : '')+
+                '#define opticalFlowSpreadBlend\n'+
                 spreadFrag,
 
-            // @todo Fix for mapped values ([-1, 1] <=> [0, 1])
-            // speed: ((float)? [1, 1] : [2**-8, 2**-8]),
-            // speed: [0, 0],
-            speed: [1, 1],
-            // speed: [2**-8, 2**-8],
-            // speed: [2**-5, 2**-5],
+            other: flowTo, blend: 1,
             inRange, outRange,
 
             /**
-             * Bear in mind multiple `passes` each also apply the other `spread`
-             * inputs; some may be better to control per-pass, others across both.
+             * Bear in mind each of the `passes` per-`axis` also apply the other
+             * `spread` inputs; some may be better to control per-`pass`, others
+             * across both.
              *
              * @see props.spreadVideo.passes
              */
@@ -110,13 +101,17 @@ function go(regl) {
                     return o;
                 },
                 [
-                    { axis: [0.5, 0], tint: [1, 1, 1, 1] },
-                    // { axis: [0, 0.5], tint: [0.95, 0.95, 0.95, 1] }
-                    { axis: [0, 0.5], tint: [1, 1, 1, 1] }
+                    {
+                        axis: [1.5, 0], tint: Array(4).fill(1),
+                        speed: Array(2).fill(0)
+                    },
+                    {
+                        axis: [0, 1.5], tint: Array(4).fill(0.98),
+                        speed: Array(2).fill(1)
+                    }
                 ],
                 0)
         },
-        blend: { fade: 0.95 },
         view: { inRange, outRange }
     };
 
@@ -126,18 +121,19 @@ function go(regl) {
     const clearFlows = map((f) => ({ ...clearView, framebuffer: f }),
         flowFrames);
 
-    const clearBlends = map((f) => ({ ...clearView, framebuffer: f }),
-        blendFrames);
-
     const clearSpreads = map((f) => ({ ...clearView, framebuffer: f }),
         spreadFrames);
+
+    const clearBlends = map((f) => ({ ...clearView, framebuffer: f }),
+        blendFrames);
 
     const drawScreen = regl({
         vert, attributes: { position: positions }, count,
         depth: { enable: false }
     });
 
-    // Spread a frame `pass`; blur along an `axis`, shift by a `flow`, if given.
+    // Spread a frame `pass`; blur along an `axis`, shift by a `flow`, `blend`
+    // with an `other` map; if given.
     const drawSpread = regl({
         frag: (c, { frag: f = spreadFrag }) => f,
         uniforms: {
@@ -151,6 +147,8 @@ function go(regl) {
             flow: regl.prop('flow'),
             inRange: regl.prop('inRange'),
             outRange: regl.prop('outRange'),
+            other: regl.prop('other'),
+            blend: regl.prop('blend'),
             width: regl.context('drawingBufferWidth'),
             height: regl.context('drawingBufferHeight')
         },
@@ -165,7 +163,7 @@ function go(regl) {
             props.passes, 0));
     }
 
-    // Blur the input video's current frame, into the next flow frame.
+    // Blur the input video's current frame, into the next flow input frame.
     function drawSpreadVideoProps(tick) {
         const { videoFrame, spreadVideo } = props;
         const f = wrapIndex(tick, flowFrames.length);
@@ -179,8 +177,7 @@ function go(regl) {
         return drawSpreadProps(spreadVideo);
     }
 
-    // The main function of concern - optical flow from the last 2 frames.
-
+    // The main function of concern - optical flow of the last 2 `video` frames.
     const drawFlow = regl({
         frag: ((remap)? '#define opticalFlowMap\n' : '')+flowFrag,
         uniforms: {
@@ -202,37 +199,29 @@ function go(regl) {
         return drawFlow(props.flow);
     }
 
-    // Spread the past flow frame.
+    /**
+     * Blur the past flow frames along each `axis`, shift/advect along the
+     * `flow` by `speed`, `tint` to weaken the past flow, `blend` in the next
+     * optical-flow frame.
+     *
+     * @see props.spreadFlow
+     */
     function drawSpreadFlowProps(tick) {
         const { spreadFlow } = props;
         const { passes } = spreadFlow;
 
         each(regl.clear, clearSpreads);
         spreadFlow.flow = passes[0].frame = wrapGet(tick+1, blendFrames);
-        // spreadFlow.flow = flowTo;
-        // passes[0].frame = wrapGet(tick+1, blendFrames);
+
+        const b = wrapIndex(tick, blendFrames.length);
+
+        regl.clear(clearBlends[b]);
+        passes[1].to = blendFrames[b];
 
         return drawSpreadProps(spreadFlow);
     }
 
-    // Blend the `past` and `next` optical-flow frames.
-    const drawBlend = regl({
-        frag: blendFrag,
-        uniforms: {
-            next: flowTo,
-            // The spread result of the past frame.
-            past: wrapGet(-1, spreadFrames),
-            fade: regl.prop('fade')
-        },
-        framebuffer: ({ tick: t }) => wrapGet(t, blendFrames)
-    });
-
-    function drawBlendProps(tick) {
-        regl.clear(wrapGet(tick, clearBlends));
-
-        return drawBlend(props.blend);
-    }
-
+    // Draw to the screen.
     const drawView = regl({
         frag: ((remap)? '#define opticalFlowViewMap\n' : '')+viewFrag,
         uniforms: {
@@ -248,15 +237,14 @@ function go(regl) {
         return drawView(props.view);
     }
 
+    // All together now.
     function draw({ tick: t }) {
         // Blur the input video's current frame.
         drawSpreadVideoProps(t);
-        // Get the optical flow from the last 2 frames.
+        // Get the optical flow from the last 2 `video` frames.
         drawFlowProps();
-        // Spread the past frame.
+        // Spread the past flow frame and blend with the next one.
         drawSpreadFlowProps(t);
-        // Blend the last 2 frames with some amount of `fade`.
-        drawBlendProps(t);
         // Draw to the screen.
         drawViewProps();
     }
@@ -271,6 +259,13 @@ function go(regl) {
         props.flow.offset /= Math.max(w, h, 1e3);
         video.play();
 
+        // Fill the flow frames with the first frame.
+        drawScreen(() => {
+            drawSpreadVideoProps(0);
+            drawSpreadVideoProps(1);
+        });
+
+        // Start the main loop.
         regl.frame(() => drawScreen(draw));
     });
 

@@ -12,8 +12,8 @@ uniform sampler2D next;
 uniform sampler2D past;
 uniform float offset;
 uniform float lambda;
-uniform float speed;
 uniform float alpha;
+uniform vec2 speed;
 
 // Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 1]).
 #ifdef opticalFlowMap
@@ -31,10 +31,12 @@ void main() {
     vec2 flow = opticalFlow(uv, next, past, offset, lambda);
     float power = dot(flow, flow);
 
+    flow *= speed;
+
     // Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 1]).
     #ifdef opticalFlowMap
         flow = map(flow, inRange.xy, inRange.zw, outRange.xy, outRange.zw);
     #endif
 
-    gl_FragColor = vec4(flow*speed, power, clamp(power*alpha, 0.0, 1.0));
+    gl_FragColor = vec4(flow, power, clamp(power*alpha, 0.0, 1.0));
 }

@@ -19,9 +19,9 @@ yarn add @epok.tech/glsl-optical-flow
 
 ## Usage
 
-[Check out the demo](http://epok.tech/glsl-optical-flow/), and its [source code](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/demo/), which shows how to blur input and blend across frames to get smooth optical-flow tracking over time:
+[Check out the demo](http://epok.tech/glsl-optical-flow/), and its [source code](https://github.com/keeffEoghan/glsl-optical-flow/blob/master/demo/), a comprehensive example of blurring input, blending across frames, and advecting by the flow to get smooth optical-flow over time:
 
-You may use this in your own shader...
+You may also use this in your shader...
 ```glsl
 precision highp float;
 

@@ -15,6 +15,9 @@
 // Map any flow values.
 // #define opticalFlowSpreadMap
 
+// Blend with past frame.
+// #define opticalFlowSpreadBlend
+
 precision highp float;
 
 uniform sampler2D frame;
@@ -49,9 +52,14 @@ uniform sampler2D frame;
     #endif
 #endif
 
+#ifdef opticalFlowSpreadBlend
+    uniform sampler2D other;
+    uniform float blend;
+#endif
+
 varying vec2 uv;
 
-#pragma glslify: blur = require(glsl-fast-gaussian-blur)
+#pragma glslify: blur = require(glsl-fast-gaussian-blur/5)
 
 #if opticalFlowSpreadShift != opticalFlowSpreadShift_none
     vec2 shift(vec2 uv, sampler2D flow) {
@@ -62,44 +70,49 @@ varying vec2 uv;
             f = map(f, outRange.xy, outRange.zw, inRange.xy, inRange.zw);
         #endif
 
-        // Follow any `blur` axis.
-        #ifdef opticalFlowSpreadBlur
-            f *= axis;
-        #endif
-        // #ifdef opticalFlowSpreadBlur
-        //     f *= dot(axis, speed);
-        // #else
-        //     f *= speed;
-        // #endif
-
-        // return uv+(f*speed);
-        return uv+f;
+        return uv+(f*speed);
     }
 #endif
 
 void main() {
+    vec2 st = uv;
+
     // Shift the sample lookup by a `flow` lookup.
     #if opticalFlowSpreadShift == opticalFlowSpreadShift_flow
         // Use the given `flow` input.
-        vec2 st = shift(uv, flow);
+        st = shift(st, flow);
     #elif opticalFlowSpreadShift == opticalFlowSpreadShift_frame
         // Use the `frame` itself as `flow` input.
-        vec2 st = shift(uv, frame);
-    #else
-        vec2 st = uv;
+        st = shift(st, frame);
     #endif
 
     // Perform a `blur`.
     #ifdef opticalFlowSpreadBlur
-        vec4 color = blur(frame, st, vec2(width, height), axis);
+        vec4 c = blur(frame, st, vec2(width, height), axis);
     #else
-        vec4 color = texture2D(frame, st);
+        vec4 c = texture2D(frame, st);
+    #endif
+
+    // Map back to any given range.
+    #ifdef opticalFlowSpreadMap
+        c.xy = map(c.xy, outRange.xy, outRange.zw, inRange.xy, inRange.zw);
     #endif
 
     // Scale values output by `tint`.
     #ifdef opticalFlowSpreadTint
-        color *= tint;
+        c *= tint;
     #endif
 
-    gl_FragColor = color;
+    // Reverse any mapping.
+    #ifdef opticalFlowSpreadMap
+        c.xy = map(c.xy, inRange.xy, inRange.zw, outRange.xy, outRange.zw);
+    #endif
+
+    #ifdef opticalFlowSpreadBlend
+        vec4 o = texture2D(other, uv);
+
+        c = mix(c, o, mix(1.0-c.a, o.a, blend));
+    #endif
+
+    gl_FragColor = c;
 }
