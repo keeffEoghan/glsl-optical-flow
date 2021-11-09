@@ -41,8 +41,7 @@
   "homepage": "https://github.com/keeffEoghan/glsl-optical-flow#readme",
   "files": [
     "docs/**/*",
-    "demo/**/*",
-    "snap/demo.png"
+    "demo/**/*"
   ],
   "keywords": [
     "glsl",
