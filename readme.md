@@ -1,6 +1,6 @@
 # `glsl-optical-flow`
 
-[![Optical flow advection](./snap/demo.png)](https://youtu.be/ClTmZ3s7Uls "Optical flow advection")
+[![Optical flow advection demo](./snap/demo.png)](https://epok.tech/glsl-optical-flow "Optical flow advection demo")
 
 Optical flow shader for WebGL - BYORenderer.
 

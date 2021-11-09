@@ -12,8 +12,8 @@ import flowFrag from '../index.frag.glsl';
 import spreadFrag from './spread.frag.glsl';
 import viewFrag from './view.frag.glsl';
 
-const canvas = document.querySelector('canvas');
 const video = document.querySelector('.webcam');
+const canvas = document.querySelector('.output');
 
 function go(regl) {
     const float = (regl.hasExtension('oes_texture_float_linear') &&
