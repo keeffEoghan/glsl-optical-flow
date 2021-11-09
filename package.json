@@ -1,6 +1,6 @@
 {
   "name": "@epok.tech/glsl-optical-flow",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Optical flow for WebGL - BYORenderer.",
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
   "scripts": {
     "start": "yarn run docs",
     "dev": "parcel ./demo/index.html",
-    "build": "rm -rf dist/ && parcel build ./src/index.html --dist-dir ./dist/ --public-url ./dist/",
+    "build": "rm -rf dist/ && parcel build ./demo/index.html --dist-dir ./dist/ --public-url ./dist/",
     "docs": "rm -rf docs/ && parcel build ./demo/index.html --dist-dir ./docs/ --public-url ./"
   },
   "dependencies": {
