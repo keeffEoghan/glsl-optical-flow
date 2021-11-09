@@ -10,7 +10,5 @@ body {
     align-items: center;
 }
 
-video,
-canvas {
-    transform: scaleX(-1);
-}
+.webcam,
+canvas { transform: scaleX(-1); }

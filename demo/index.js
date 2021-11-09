@@ -13,7 +13,7 @@ import spreadFrag from './spread.frag.glsl';
 import viewFrag from './view.frag.glsl';
 
 const canvas = document.querySelector('canvas');
-const video = document.querySelector('video');
+const video = document.querySelector('.webcam');
 
 function go(regl) {
     const float = (regl.hasExtension('oes_texture_float_linear') &&
@@ -252,8 +252,8 @@ function go(regl) {
     video.addEventListener('canplay', () => {
         const { videoWidth: w, videoHeight: h } = video;
 
-        canvas.width = w;
-        canvas.height = h;
+        video.width = canvas.width = w;
+        video.height = canvas.height = h;
         each((v) => v.resize(w, video.videoHeight), resizers);
         // Pixels units; divide `offset` by the video resolution.
         props.flow.offset /= Math.max(w, h, 1e3);

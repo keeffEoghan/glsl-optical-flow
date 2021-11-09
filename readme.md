@@ -1,5 +1,7 @@
 # `glsl-optical-flow`
 
+[![Optical flow advection](./snap/demo.png)](https://youtu.be/ClTmZ3s7Uls "Optical flow advection")
+
 Optical flow shader for WebGL - BYORenderer.
 
 No drawing dependencies - for easier compatibility with any renderer which may rely on tracking the WebGL state (e.g: [`regl`](https://github.com/regl-project/regl/)).
@@ -25,7 +27,7 @@ You may also use this in your shader...
 ```glsl
 precision highp float;
 
-uniform sampler2D view;
+uniform sampler2D next;
 uniform sampler2D past;
 uniform float offset;
 uniform float lambda;
@@ -35,7 +37,7 @@ varying vec2 uv;
 #pragma glslify: opticalFlow = require(@epok.tech/glsl-optical-flow)
 
 void main() {
-    gl_FragColor = vec4(opticalFlow(uv, view, past, offset, lambda), 0.0, 1.0);
+    gl_FragColor = vec4(opticalFlow(uv, next, past, offset, lambda), 0.0, 1.0);
 }
 ```
 
