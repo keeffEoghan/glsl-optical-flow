@@ -1,0 +1,2 @@
+*,:after,:before{box-sizing:inherit}html{background:#000;box-sizing:border-box}.demo,body{align-items:center;display:flex;flex-flow:row wrap;justify-content:center}body{margin:0}.demo{cursor:alias;margin:4em;position:relative}.demo.overlay{cursor:move}.output,.webcam{transform:scaleX(-1)}.demo.overlay .output{left:0;position:absolute;top:0}.fallback{height:720px;margin:4em;width:100%}
+/*# sourceMappingURL=index.d78c233c.css.map */

@@ -1,19 +1,41 @@
+*,
+*:before,
+*:after { box-sizing: inherit; }
+
 html {
+    box-sizing: border-box;
     background: #000;
 }
 
-body {
-    margin: 0;
+body,
+.demo {
     display: flex;
     flex-flow: row wrap;
     justify-content: center;
     align-items: center;
 }
 
+body { margin: 0; }
+
+.demo {
+    position: relative;
+    margin: 4em;
+    cursor: alias;
+}
+
+.demo.overlay { cursor: move; }
+
 .webcam,
 .output { transform: scaleX(-1); }
+
+.demo.overlay .output {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 
 .fallback {
     width: 100%;
     height: 720px;
+    margin: 4em;
 }

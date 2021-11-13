@@ -1,6 +1,6 @@
 {
   "name": "@epok.tech/glsl-optical-flow",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Optical flow for WebGL - BYORenderer.",
   "repository": {
     "type": "git",
@@ -14,10 +14,14 @@
   },
   "packageManager": "yarn@3.1.0",
   "scripts": {
-    "start": "yarn run docs",
-    "dev": "parcel ./demo/index.html",
-    "build": "rm -rf dist/ && parcel build ./demo/index.html --dist-dir ./dist/ --public-url ./dist/",
-    "docs": "rm -rf docs/ && parcel build ./demo/index.html --dist-dir ./docs/ --public-url ./"
+    "start": "yarn docs",
+    "dev": "parcel --log-level verbose --target docs",
+    "dist": "yarn build:safe && yarn docs:safe",
+    "build": "rm -rf ./dist/ && parcel build --target default",
+    "docs": "rm -rf ./docs/ && parcel build --target docs",
+    "dist:safe": "yarn build:safe && yarn docs:safe",
+    "build:safe": "yarn build --no-cache",
+    "docs:safe": "yarn docs --no-cache"
   },
   "dependencies": {
     "glsl-luma": "^1.0.1",
@@ -34,27 +38,46 @@
     "parcel": "v2.0.1",
     "regl": "^2.1.0"
   },
+  "main": "dist/index.js",
+  "source": [
+    "index.js",
+    "index.frag.js"
+  ],
   "files": [
+    "dist/**/*",
     "docs/**/*",
     "demo/**/*",
     "snap/demo.png"
   ],
+  "targets": {
+    "default": {
+      "isLibrary": true,
+      "engines": {
+        "browsers": "last 2 versions, > 0.5%, not dead"
+      },
+      "distDir":  "dist/",
+      "publicUrl":  "dist/"
+    },
+    "docs": {
+      "isLibrary": false,
+      "engines": {
+        "browsers": "last 2 versions, > 0.5%, not dead"
+      },
+      "source": "demo/index.html",
+      "distDir": "docs/",
+      "publicUrl":  "./"
+    }
+  },
   "keywords": [
     "glsl",
     "webgl",
     "shader",
     "optical",
     "flow",
-    "optical",
     "regl"
   ],
   "bugs": {
     "url": "https://github.com/keeffEoghan/glsl-optical-flow/issues"
   },
-  "homepage": "https://github.com/keeffEoghan/glsl-optical-flow#readme",
-  "targets": {
-    "default": {
-      "engines": {}
-    }
-  }
+  "homepage": "https://github.com/keeffEoghan/glsl-optical-flow#readme"
 }
