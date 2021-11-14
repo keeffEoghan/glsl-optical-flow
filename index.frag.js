@@ -1,3 +1,1 @@
-export frag from './index.frag.glsl';
-
-export default frag;
+export * as default from './index.frag.glsl';

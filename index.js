@@ -1,3 +1,1 @@
-export glsl from './index.glsl';
-
-export default glsl;
+export * as default from './index.glsl';

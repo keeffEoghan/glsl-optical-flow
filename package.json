@@ -1,6 +1,6 @@
 {
   "name": "@epok.tech/glsl-optical-flow",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Optical flow for WebGL - BYORenderer.",
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
     "start": "yarn docs",
     "dev": "parcel --log-level verbose --target docs",
     "dist": "yarn build:safe && yarn docs:safe",
-    "build": "rm -rf ./dist/ && parcel build --target default",
+    "build": "rm -rf ./dist/ && parcel build --target es --target cjs",
     "docs": "rm -rf ./docs/ && parcel build --target docs",
     "dist:safe": "yarn build:safe && yarn docs:safe",
     "build:safe": "yarn build --no-cache",
@@ -38,7 +38,8 @@
     "parcel": "v2.0.1",
     "regl": "^2.1.0"
   },
-  "main": "dist/index.js",
+  "main": "dist/main/index.js",
+  "module": "dist/es/index.js",
   "source": [
     "index.js",
     "index.frag.js"
@@ -50,13 +51,23 @@
     "snap/demo.png"
   ],
   "targets": {
-    "default": {
+    "cjs": {
+      "outputFormat": "commonjs",
       "isLibrary": true,
       "engines": {
         "browsers": "last 2 versions, > 0.5%, not dead"
       },
-      "distDir":  "dist/",
-      "publicUrl":  "dist/"
+      "distDir":  "dist/main/",
+      "publicUrl":  "dist/main/"
+    },
+    "es": {
+      "outputFormat": "esmodule",
+      "isLibrary": true,
+      "engines": {
+        "browsers": "last 2 versions, > 0.5%, not dead"
+      },
+      "distDir":  "dist/es/",
+      "publicUrl":  "dist/es/"
     },
     "docs": {
       "isLibrary": false,
