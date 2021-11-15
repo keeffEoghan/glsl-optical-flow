@@ -74,7 +74,7 @@ const props = self.opticalFlow = {
         // Pixels units; will divide `offset` by the video resolution later.
         offset: 3,
         lambda: 1e-3,
-        speed: Array(2).fill(1),
+        speed: range(2, 1),
         alpha: 100,
         inRange, outRange
     },
@@ -110,12 +110,12 @@ const props = self.opticalFlow = {
             },
             [
                 {
-                    axis: [3, 0], tint: Array(4).fill(1),
-                    speed: Array(2).fill(0)
+                    axis: [3, 0], tint: range(4, 1),
+                    speed: range(2, 0)
                 },
                 {
-                    axis: [0, 3], tint: Array(4).fill(0.99),
-                    speed: Array(2).fill(1)
+                    axis: [0, 3], tint: range(4, 0.99),
+                    speed: range(2, 1)
                 }
             ],
             0)
