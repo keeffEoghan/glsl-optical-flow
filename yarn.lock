@@ -295,10 +295,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@epok.tech/fn-lists@npm:^0.0.9":
-  version: 0.0.9
-  resolution: "@epok.tech/fn-lists@npm:0.0.9"
-  checksum: 1c3bf592d04473c93ae395eeb2e8e6bdf61fb4c0312926075571515ef97de757b487cc3b5b55a6bd9412c347bf1803a8632d11af592618e8fe2b3ff2d1aad9b3
+"@epok.tech/fn-lists@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@epok.tech/fn-lists@npm:0.1.1"
+  checksum: 44dcd2eb308fa411d3b766b3478d45ddf227a3396646e68fb1fec3282ef7b0499c0a66b43b6c483561847e6af4065077f43eccf212442b583513fd7592c7c183
   languageName: node
   linkType: hard
 
@@ -313,7 +313,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@epok.tech/glsl-optical-flow@workspace:."
   dependencies:
-    "@epok.tech/fn-lists": ^0.0.9
+    "@epok.tech/fn-lists": ^0.1.1
     "@epok.tech/gl-screen-triangle": ^1.1.3
     "@parcel/transformer-glsl": ^2.0.1
     getusermedia: ^2.0.1
