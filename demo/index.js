@@ -32,18 +32,18 @@ const float = (regl.hasExtension('oes_texture_float_linear') &&
 const remap = !float;
 const mapProps = { type: (float || 'uint8'), min: 'linear', mag: 'linear' };
 const getMap = () => regl.texture(mapProps);
-const getFrame = () => regl.framebuffer({ color: getMap() });
+const getFrame = (color = getMap()) => regl.framebuffer({ color });
 
 // Each blur axis of spread.
 const spreadMaps = map(getMap, range(2), 0);
-const spreadFrames = map((c) => regl.framebuffer({ color: c }), spreadMaps);
+const spreadFrames = map(getFrame, spreadMaps);
 
 // Past and next `video` frames for optical-flow.
-const flowFrames = map(getFrame, range(2), 0);
+const flowFrames = map(() => getFrame(), range(2), 0);
 const flowTo = getFrame();
 
 // Past and next optical-flow frames to blend.
-const blendFrames = map(getFrame, range(2), 0);
+const blendFrames = map(() => getFrame(), range(2), 0);
 
 const resizers = [...spreadFrames, ...flowFrames, flowTo, ...blendFrames];
 
