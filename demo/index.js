@@ -71,12 +71,14 @@ const props = self.opticalFlow = {
             0)
     },
     flow: {
+        frag: ((remap)? '#define opticalFlowMap\n' : '')+flowFrag,
         // Pixels units; will divide `offset` by the video resolution later.
         offset: 3,
         lambda: 1e-3,
         speed: range(2, 1),
         alpha: 100,
-        inRange, outRange
+        inRange, outRange,
+        to: flowTo
     },
     spreadFlow: {
         /**
@@ -109,18 +111,15 @@ const props = self.opticalFlow = {
                 return o;
             },
             [
-                {
-                    axis: [3, 0], tint: range(4, 1),
-                    speed: range(2, 0)
-                },
-                {
-                    axis: [0, 3], tint: range(4, 0.99),
-                    speed: range(2, 1)
-                }
+                { axis: [3, 0], tint: range(4, 1), speed: range(2, 0) },
+                { axis: [0, 3], tint: range(4, 0.99), speed: range(2, 1) }
             ],
             0)
     },
-    view: { inRange, outRange }
+    view: {
+        frag: ((remap)? '#define opticalFlowViewMap\n' : '')+viewFrag,
+        inRange, outRange
+    }
 };
 
 const clearView = { color: [0, 0, 0, 1], depth: 1, stencil: 0 };
@@ -161,7 +160,7 @@ const drawSpread = regl({
         height: regl.context('drawingBufferHeight')
     },
     // Swap by `pass`; allow `to` to  override `framebuffer` if given.
-    framebuffer: (c, { pass: p = 0, to = wrapGet(p, spreadFrames) }) => to
+    framebuffer: (c, { pass: p = 0, to }) => (to ?? wrapGet(p, spreadFrames))
 });
 
 // Draws the 2 spread blur `passes` across both axes one after the other.
@@ -187,7 +186,7 @@ function drawSpreadVideoProps(tick) {
 
 // The main function of concern - optical flow of the last 2 `video` frames.
 const drawFlow = regl({
-    frag: ((remap)? '#define opticalFlowMap\n' : '')+flowFrag,
+    frag: (_, { frag: f = flowFrag }) => f,
     uniforms: {
         next: ({ tick: t }) => wrapGet(t, flowFrames),
         past: ({ tick: t }) => wrapGet(t+1, flowFrames),
@@ -198,7 +197,7 @@ const drawFlow = regl({
         inRange: regl.prop('inRange'),
         outRange: regl.prop('outRange')
     },
-    framebuffer: flowTo
+    framebuffer: (_, { to = flowTo }) => to
 });
 
 function drawFlowProps() {
@@ -231,12 +230,13 @@ function drawSpreadFlowProps(tick) {
 
 // Draw to the screen.
 const drawView = regl({
-    frag: ((remap)? '#define opticalFlowViewMap\n' : '')+viewFrag,
+    frag: (_, { frag: f = viewFrag }) => f,
     uniforms: {
         frame: ({ tick: t }) => wrapGet(t, blendFrames),
         inRange: regl.prop('inRange'),
         outRange: regl.prop('outRange')
-    }
+    },
+    framebuffer: (_, { to }) => to
 });
 
 function drawViewProps() {
@@ -262,7 +262,7 @@ video.addEventListener('canplay', () => {
 
     video.width = canvas.width = w;
     video.height = canvas.height = h;
-    each((v) => v.resize(w, video.videoHeight), resizers);
+    each((r) => r.resize(w, h), resizers);
     // Pixels units; divide `offset` by the video resolution.
     props.flow.offset /= Math.max(w, h, 1e3);
     video.play();

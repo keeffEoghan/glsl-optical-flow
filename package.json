@@ -1,6 +1,6 @@
 {
   "name": "@epok.tech/glsl-optical-flow",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Optical flow for WebGL - BYORenderer.",
   "repository": {
     "type": "git",
@@ -45,6 +45,7 @@
     "index.frag.js"
   ],
   "files": [
+    "*.{js,glsl}",
     "dist/**/*",
     "docs/**/*",
     "demo/**/*",
