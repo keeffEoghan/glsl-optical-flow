@@ -17,7 +17,6 @@ varying vec2 uv;
 
 #pragma glslify: tau = require(glsl-constants/TWO_PI)
 #pragma glslify: hslToRGB = require(glsl-hsl2rgb)
-#pragma glslify: map = require(glsl-map)
 
 void main() {
     vec4 data = texture2D(frame, uv);
