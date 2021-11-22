@@ -8,7 +8,7 @@ uniform sampler2D frame;
 // Map any flow values.
 #ifdef opticalFlowViewMap
     uniform vec4 inRange;
-    uniform vec4 outRange;
+    uniform vec4 toRange;
 
     #pragma glslify: map = require(glsl-map)
 #endif
@@ -25,7 +25,7 @@ void main() {
 
     // Map any flow values.
     #ifdef opticalFlowViewMap
-        flow = map(flow, outRange.xy, outRange.zw, inRange.xy, inRange.zw);
+        flow = map(flow, toRange.xy, toRange.zw, inRange.xy, inRange.zw);
     #endif
 
     // Angle to hue - red right, green up, cyan left, magenta down.

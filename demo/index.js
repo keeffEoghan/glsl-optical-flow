@@ -30,9 +30,14 @@ const float = (regl.hasExtension('oes_texture_float_linear') &&
 
 // Whether to remap values between `float`/`int` in textures.
 const remap = !float;
+
 const mapProps = { type: (float || 'uint8'), min: 'linear', mag: 'linear' };
+const frameProps = { width: 0, height: 0, depth: false, stencil: false };
+
 const getMap = () => regl.texture(mapProps);
-const getFrame = (color = getMap()) => regl.framebuffer({ color });
+
+const getFrame = (color = getMap()) =>
+    regl.framebuffer({ color, ...frameProps });
 
 // Each blur axis of spread.
 const spreadMaps = map(getMap, range(2), 0);
@@ -48,7 +53,7 @@ const blendFrames = map(() => getFrame(), range(2), 0);
 const resizers = [...spreadFrames, ...flowFrames, flowTo, ...blendFrames];
 
 const inRange = [-1, -1, 1, 1];
-const outRange = [0, 0, 1, 1];
+const toRange = [0, 0, 1, 1];
 
 const props = self.opticalFlow = {
     videoFrame: { data: video, flipY: true },
@@ -77,7 +82,7 @@ const props = self.opticalFlow = {
         lambda: 1e-3,
         speed: range(2, 1),
         alpha: 100,
-        inRange, outRange,
+        inRange, toRange,
         to: flowTo
     },
     spreadFlow: {
@@ -96,7 +101,7 @@ const props = self.opticalFlow = {
             spreadFrag,
 
         other: flowTo, blend: 1,
-        inRange, outRange,
+        inRange, toRange,
 
         /**
          * Bear in mind each of the `passes` per-`axis` also apply the other
@@ -118,7 +123,7 @@ const props = self.opticalFlow = {
     },
     view: {
         frag: ((remap)? '#define opticalFlowViewMap\n' : '')+viewFrag,
-        inRange, outRange
+        inRange, toRange
     }
 };
 
@@ -153,7 +158,7 @@ const drawSpread = regl({
         speed: regl.prop('speed'),
         flow: regl.prop('flow'),
         inRange: regl.prop('inRange'),
-        outRange: regl.prop('outRange'),
+        toRange: regl.prop('toRange'),
         other: regl.prop('other'),
         blend: regl.prop('blend'),
         width: regl.context('drawingBufferWidth'),
@@ -195,7 +200,7 @@ const drawFlow = regl({
         speed: regl.prop('speed'),
         alpha: regl.prop('alpha'),
         inRange: regl.prop('inRange'),
-        outRange: regl.prop('outRange')
+        toRange: regl.prop('toRange')
     },
     framebuffer: (_, { to = flowTo }) => to
 });
@@ -234,7 +239,7 @@ const drawView = regl({
     uniforms: {
         frame: ({ tick: t }) => wrapGet(t, blendFrames),
         inRange: regl.prop('inRange'),
-        outRange: regl.prop('outRange')
+        toRange: regl.prop('toRange')
     },
     framebuffer: (_, { to }) => to
 });
@@ -257,7 +262,7 @@ function draw({ tick: t }) {
     drawViewProps();
 }
 
-video.addEventListener('canplay', () => {
+function setup() {
     const { videoWidth: w, videoHeight: h } = video;
 
     video.width = canvas.width = w;
@@ -275,7 +280,11 @@ video.addEventListener('canplay', () => {
 
     // Start the main loop.
     regl.frame(() => drawScreen(draw));
-});
+
+    video.removeEventListener('canplay', setup);
+}
+
+video.addEventListener('canplay', setup);
 
 demo.addEventListener('click', () => {
     const c = demo.classList;
@@ -283,8 +292,7 @@ demo.addEventListener('click', () => {
     c[(c.contains('overlay'))? 'remove' : 'add']('overlay');
 });
 
-getUserMedia({ video: true }, (e, stream) => {
-    if(e) { console.warn(e); }
-    else if('srcObject' in video) { video.srcObject = stream; }
-    else { video.src = self.URL.createObjectURL(stream); }
-});
+getUserMedia({ video: true }, (e, stream) =>
+    ((e)? console.warn(e)
+    : (('srcObject' in video)? video.srcObject = stream
+    :   video.src = URL.createObjectURL(stream))));

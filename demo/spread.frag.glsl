@@ -46,7 +46,7 @@ uniform sampler2D frame;
     // Map any flow values.
     #ifdef opticalFlowSpreadMap
         uniform vec4 inRange;
-        uniform vec4 outRange;
+        uniform vec4 toRange;
 
         #pragma glslify: map = require(glsl-map)
     #endif
@@ -67,7 +67,7 @@ varying vec2 uv;
 
         // Reverse any mapping of the flow values.
         #ifdef opticalFlowSpreadMap
-            f = map(f, outRange.xy, outRange.zw, inRange.xy, inRange.zw);
+            f = map(f, toRange.xy, toRange.zw, inRange.xy, inRange.zw);
         #endif
 
         return uv+(f*speed);
@@ -95,7 +95,7 @@ void main() {
 
     // Map back to any given range.
     #ifdef opticalFlowSpreadMap
-        c.xy = map(c.xy, outRange.xy, outRange.zw, inRange.xy, inRange.zw);
+        c.xy = map(c.xy, toRange.xy, toRange.zw, inRange.xy, inRange.zw);
     #endif
 
     // Scale values output by `tint`.
@@ -105,7 +105,7 @@ void main() {
 
     // Reverse any mapping.
     #ifdef opticalFlowSpreadMap
-        c.xy = map(c.xy, inRange.xy, inRange.zw, outRange.xy, outRange.zw);
+        c.xy = map(c.xy, inRange.xy, inRange.zw, toRange.xy, toRange.zw);
     #endif
 
     #ifdef opticalFlowSpreadBlend
