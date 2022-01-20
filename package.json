@@ -48,7 +48,6 @@
   "files": [
     "*.{js,glsl}",
     "dist/**/*",
-    "docs/**/*",
     "demo/**/*",
     "snap/demo.png"
   ],
