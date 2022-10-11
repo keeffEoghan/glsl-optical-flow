@@ -17,10 +17,10 @@ uniform vec2 speed;
 
 // Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 1]).
 #ifdef opticalFlowMap
-    uniform vec4 inRange;
-    uniform vec4 outRange;
+  uniform vec4 inRange;
+  uniform vec4 outRange;
 
-    #pragma glslify: map = require(glsl-map)
+  #pragma glslify: map = require(glsl-map)
 #endif
 
 varying vec2 uv;
@@ -28,15 +28,15 @@ varying vec2 uv;
 #pragma glslify: opticalFlow = require(./index)
 
 void main() {
-    vec2 flow = opticalFlow(uv, next, past, offset, lambda);
-    float power = dot(flow, flow);
+  vec2 flow = opticalFlow(uv, next, past, offset, lambda);
+  float power = dot(flow, flow);
 
-    flow *= speed;
+  flow *= speed;
 
-    // Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 1]).
-    #ifdef opticalFlowMap
-        flow = map(flow, inRange.xy, inRange.zw, outRange.xy, outRange.zw);
-    #endif
+  // Optionally map the flow ([-1, 1]) to a different range (e.g: [0, 1]).
+  #ifdef opticalFlowMap
+    flow = map(flow, inRange.xy, inRange.zw, outRange.xy, outRange.zw);
+  #endif
 
-    gl_FragColor = vec4(flow, power, clamp(power*alpha, 0.0, 1.0));
+  gl_FragColor = vec4(flow, power, clamp(power*alpha, 0.0, 1.0));
 }

@@ -37,7 +37,7 @@ varying vec2 uv;
 #pragma glslify: opticalFlow = require(@epok.tech/glsl-optical-flow)
 
 void main() {
-    gl_FragColor = vec4(opticalFlow(uv, next, past, offset, lambda), 0.0, 1.0);
+  gl_FragColor = vec4(opticalFlow(uv, next, past, offset, lambda), 0.0, 1.0);
 }
 ```
 
