@@ -45,6 +45,9 @@ void main() {
 
 ## See Also
 
+Examples in the wild:
+- [@tomorrowevening](https://github.com/tomorrowevening/) has [developed](https://github.com/tomorrowevening/webgl-optical-flow) a cool [demo](https://webgl-optical-flow.vercel.app/) that explores the method and ways to use it.
+
 Based on:
 - Original use in [`tendrils`](https://github.com/keeffEoghan/tendrils).
 - `ofxFlowTools` [article](https://forum.openframeworks.cc/t/ofxflowtools-optical-flow-fluid-dynamics-and-particles-in-glsl/15470) and [code](https://github.com/moostrik/ofxFlowTools).
