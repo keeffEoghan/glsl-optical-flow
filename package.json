@@ -1,6 +1,6 @@
 {
   "name": "@epok.tech/glsl-optical-flow",
-  "version": "1.5.8",
+  "version": "1.6.0",
   "description": "Optical flow for WebGL - BYORenderer.",
   "repository": {
     "type": "git",
@@ -16,13 +16,13 @@
   "scripts": {
     "start": "yarn docs",
     "dev": "parcel --log-level verbose demo/index.html",
-    "dist": "yarn build:safe && yarn docs:safe",
+    "dist": "yarn build:fresh & yarn docs:fresh & wait",
     "build": "rm -rf ./dist/ && parcel build --target esm --target cjs",
     "docs": "rm -rf ./docs/ && parcel build --target docs",
-    "dev:safe": "yarn dev --no-cache",
-    "dist:safe": "yarn build:safe && yarn docs:safe",
-    "build:safe": "yarn build --no-cache",
-    "docs:safe": "yarn docs --no-cache"
+    "dev:fresh": "yarn dev --no-cache",
+    "dist:fresh": "yarn build:fresh & yarn docs:fresh & wait",
+    "build:fresh": "yarn build --no-cache",
+    "docs:fresh": "yarn docs --no-cache"
   },
   "dependencies": {
     "glsl-luma": "^1.0.1",

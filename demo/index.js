@@ -12,12 +12,16 @@ import flowFrag from '../index.frag.glsl';
 import spreadFrag from './spread.frag.glsl';
 import viewFrag from './view.frag.glsl';
 
-const demo = document.querySelector('.demo');
-const video = demo.querySelector('.webcam');
-const canvas = demo.querySelector('.output');
+const $demo = document.querySelector('.demo');
+const $video = $demo.querySelector('.webcam');
+const $canvas = $demo.querySelector('.output');
+const $fallback = document.querySelector('.fallback');
+
+// Handle query parameters.
+const query = new URLSearchParams(location.search);
 
 const regl = getRegl({
-  canvas,
+  canvas: $canvas,
   optionalExtensions: [
     'oes_texture_half_float', 'oes_texture_float', 'oes_texture_float_linear'
   ]
@@ -42,7 +46,7 @@ const getFrame = (color = getMap()) =>
 const spreadMaps = map(getMap, range(2), 0);
 const spreadFrames = map(getFrame, spreadMaps);
 
-// Past and next `video` frames for optical-flow.
+// Past and next video frames for optical-flow.
 const flowFrames = map(() => getFrame(), range(2), 0);
 const flowTo = getFrame();
 
@@ -55,7 +59,7 @@ const inRange = [-1, -1, 1, 1];
 const toRange = [0, 0, 1, 1];
 
 const props = self.opticalFlow = {
-  videoFrame: { data: video, flipY: true },
+  videoFrame: { data: $video, flipY: true },
   spreadVideo: {
     /**
      * Blur the video.
@@ -177,7 +181,7 @@ function drawSpreadVideoProps(tick) {
   return drawSpreadProps(spreadVideo);
 }
 
-// The main function of concern - optical flow of the last 2 `video` frames.
+// The main function of concern - optical flow of the last 2 video frames.
 const drawFlow = regl({
   frag: (_, { frag: f = flowFrag }) => f,
   uniforms: {
@@ -251,14 +255,14 @@ function draw({ tick: t }) {
 }
 
 function setup() {
-  const { videoWidth: w, videoHeight: h } = video;
+  const { videoWidth: w, videoHeight: h } = $video;
 
-  video.width = canvas.width = w;
-  video.height = canvas.height = h;
+  $video.width = $canvas.width = w;
+  $video.height = $canvas.height = h;
   each((r) => r.resize(w, h), resizers);
   // Pixels units; divide `offset` by the video resolution.
   props.flow.offset /= Math.max(w, h, 1e3);
-  video.play();
+  $video.play();
 
   // Fill the flow frames with the first frame.
   drawScreen(() => {
@@ -269,18 +273,31 @@ function setup() {
   // Start the main loop.
   regl.frame(() => drawScreen(draw));
 
-  video.removeEventListener('canplay', setup);
+  $video.removeEventListener('canplay', setup);
 }
 
-video.addEventListener('canplay', setup);
+$video.addEventListener('canplay', setup);
 
-demo.addEventListener('click', () => {
-  const c = demo.classList;
+const sampleURL = new URL('sample.mp4', import.meta.url);
+
+((query.get('camera') === 'false')? $video.src = sampleURL
+: getUserMedia({ video: true }, (e, stream) => {
+    if(e) {
+      return console.warn(e, 'Error getting webcam stream, using sample video',
+        $video.src = sampleURL);
+    }
+
+    (('srcObject' in $video)? $video.srcObject = stream
+    : $video.src = URL.createObjectURL(stream));
+
+    $demo.classList.add('mirror');
+  }));
+
+$demo.addEventListener('click', () => {
+  const c = $demo.classList;
 
   c[(c.contains('overlay'))? 'remove' : 'add']('overlay');
 });
 
-getUserMedia({ video: true }, (e, stream) =>
-  ((e)? console.warn(e)
-  : (('srcObject' in video)? video.srcObject = stream
-  : video.src = URL.createObjectURL(stream))));
+$fallback && (query.get('fallback') !== 'false') &&
+  ($fallback.src = $fallback.dataset.src);

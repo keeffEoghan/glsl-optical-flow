@@ -3,11 +3,12 @@
     <link rel="stylesheet" type="text/css" href="./index.css">
   </head>
   <body>
-    <section class="demo">
-      <video class="webcam" width="0" height="0"></video>
+    <section class="demo overlay">
+      <video class="webcam" width="0" height="0" muted loop></video>
       <canvas class="output" width="0" height="0"></canvas>
     </section>
-    <iframe class="fallback" src="https://www.youtube.com/embed/ClTmZ3s7Uls"
+    <iframe class="fallback"
+      data-src="https://www.youtube.com/embed/ClTmZ3s7Uls"
       title="Optical flow advection" frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen>
