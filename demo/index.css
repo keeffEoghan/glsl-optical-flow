@@ -15,7 +15,10 @@ body,
   align-items: center;
 }
 
-body { margin: 0; }
+body {
+  margin: 0;
+  gap: 4em;
+}
 
 video,
 canvas,
@@ -24,9 +27,14 @@ img {
   max-height: 100%;
 }
 
+.webcam,
+.output {
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
 .demo {
   position: relative;
-  margin: 4em;
   cursor: alias;
 
   &.mirror {
