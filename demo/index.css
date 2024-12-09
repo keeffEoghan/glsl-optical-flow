@@ -33,9 +33,13 @@ img {
   max-height: 100vh;
 }
 
+.webcam { display: none; }
+
+.output { z-index: 1; }
+
 .demo {
   position: relative;
-  cursor: alias;
+  cursor: copy;
 
   &.mirror {
     .webcam,
@@ -43,7 +47,9 @@ img {
   }
 
   &.overlay {
-    cursor: move;
+    cursor: alias;
+
+    .webcam { display: block; }
 
     .output {
       position: absolute;
